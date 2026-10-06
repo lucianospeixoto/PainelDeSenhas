@@ -2,10 +2,12 @@ package QueuePass.ryan.service;
 
 import QueuePass.ryan.dto.CreatePassword;
 import QueuePass.ryan.dto.EstatisticasDTO;
+import QueuePass.ryan.dto.GuicheAtendimentosDTO;
 import QueuePass.ryan.dto.SenhaFilaDTO;
 import QueuePass.ryan.factory.SenhaFactory;
 import QueuePass.ryan.model.Enum.PasswordStatus;
 import QueuePass.ryan.model.Enum.PasswordType;
+import QueuePass.ryan.model.Guiche;
 import QueuePass.ryan.model.Senha;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -25,6 +28,8 @@ import java.util.stream.Collectors;
 public class PasswordService {
 
     private final SenhaFactory senhaFactory;
+
+    private final GuicheService guicheService;
 
     private final AtomicLong idGenerator = new AtomicLong(0);
 
@@ -37,6 +42,9 @@ public class PasswordService {
     public synchronized Senha criarSenha(CreatePassword request) {
         Long id = idGenerator.getAndIncrement();
         Senha senha = senhaFactory.criarSenha(request, id);
+        if (request.nomeCliente() != null && !request.nomeCliente().isBlank()) {
+            senha.setNomeCliente(request.nomeCliente().trim());
+        }
         senhas.add(senha);
         notificarClientes("senha-criada");
         return senha;
@@ -50,7 +58,9 @@ public class PasswordService {
         };
     }
 
-    public synchronized Senha chamarProximaSenha(String guiche) {
+    public synchronized Senha chamarProximaSenha(String numeroGuiche) {
+        Guiche guiche = guicheService.buscar(numeroGuiche);
+
         Senha proxima = senhas.stream()
                 .filter(s -> s.getPasswordStatus() == PasswordStatus.AGUARDANDO)
                 .sorted(Comparator.comparing(this::getPrioridadePeso)
@@ -61,7 +71,8 @@ public class PasswordService {
         if (proxima != null) {
             proxima.setPasswordStatus(PasswordStatus.CHAMADA);
             proxima.setCalledAt(java.time.LocalDateTime.now());
-            proxima.setGuiche(guiche);
+            proxima.setGuiche(guiche.numero());
+            proxima.setNomeGuiche(guiche.nome());
             notificarClientes("senha-chamada");
         }
 
@@ -167,7 +178,41 @@ public class PasswordService {
         double tempoMedioAtendimento = arredondar(calcularTempoMedioAtendimentoMinutos());
         double tempoMedioEspera = calcularTempoMedioEsperaReal();
 
-        return new EstatisticasDTO(aguardando, atendidas, tempoMedioAtendimento, tempoMedioEspera);
+        List<GuicheAtendimentosDTO> porGuiche = calcularAtendimentosPorGuiche();
+        long totalAtendimentos = porGuiche.stream()
+                .mapToLong(GuicheAtendimentosDTO::totalAtendimentos)
+                .sum();
+        GuicheAtendimentosDTO guicheMaisAtendimentos = porGuiche.stream()
+                .filter(g -> g.totalAtendimentos() > 0)
+                .findFirst()
+                .orElse(null);
+
+        return new EstatisticasDTO(aguardando, atendidas, totalAtendimentos, tempoMedioAtendimento,
+                tempoMedioEspera, guicheMaisAtendimentos, porGuiche);
+    }
+
+    public List<Guiche> listarGuiches() {
+        return guicheService.listar();
+    }
+
+    public synchronized Guiche adicionarGuiche(String numero, String nome) {
+        Guiche guiche = guicheService.adicionar(numero, nome);
+        notificarClientes("guiche-adicionado");
+        return guiche;
+    }
+
+    // Atendimento = senha que foi chamada para um guichê (exceto as canceladas).
+    // Lista ordenada do guichê que mais atendeu para o que menos atendeu.
+    private List<GuicheAtendimentosDTO> calcularAtendimentosPorGuiche() {
+        Map<String, Long> contagem = senhas.stream()
+                .filter(s -> s.getGuiche() != null && s.getPasswordStatus() != PasswordStatus.CANCELADA)
+                .collect(Collectors.groupingBy(Senha::getGuiche, Collectors.counting()));
+
+        return guicheService.listar().stream()
+                .map(g -> new GuicheAtendimentosDTO(g.numero(), g.nome(), contagem.getOrDefault(g.numero(), 0L)))
+                .sorted(Comparator.comparingLong(GuicheAtendimentosDTO::totalAtendimentos).reversed()
+                        .thenComparing(GuicheAtendimentosDTO::numero))
+                .collect(Collectors.toList());
     }
 
     private double calcularTempoMedioEsperaReal() {
@@ -195,6 +240,12 @@ public class PasswordService {
         emitter.onCompletion(() -> emitters.remove(emitter));
         emitter.onTimeout(() -> emitters.remove(emitter));
         emitter.onError((e) -> emitters.remove(emitter));
+        try {
+            // Evento inicial para o navegador receber a resposta e confirmar a conexão imediatamente
+            emitter.send(SseEmitter.event().name("conectado").data("ok"));
+        } catch (IOException e) {
+            emitters.remove(emitter);
+        }
         return emitter;
     }
 

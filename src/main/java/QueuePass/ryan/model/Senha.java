@@ -14,10 +14,12 @@ import java.time.LocalDateTime;
 public class Senha {
     private Long id;
     private String code;
+    private String nomeCliente;
     private PasswordType passwordType;
     private PasswordStatus passwordStatus;
     private LocalDateTime createdAt;
     private LocalDateTime calledAt;
     private LocalDateTime endDate;
     private String guiche;
+    private String nomeGuiche;
 }

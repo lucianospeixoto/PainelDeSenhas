@@ -9,6 +9,8 @@ import QueuePass.ryan.factory.SenhaIdosoCreator;
 import QueuePass.ryan.model.Enum.PasswordStatus;
 import QueuePass.ryan.model.Enum.PasswordType;
 import QueuePass.ryan.model.Senha;
+import QueuePass.ryan.dto.EstatisticasDTO;
+import QueuePass.ryan.service.GuicheService;
 import QueuePass.ryan.service.PasswordService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +27,7 @@ class PasswordServiceTest {
     void setUp() {
         List<SenhaCreator> creators = List.of(new SenhaComumCreator(), new SenhaVIPCreator(), new SenhaIdosoCreator());
         SenhaFactory factory = new SenhaFactory(creators);
-        service = new PasswordService(factory);
+        service = new PasswordService(factory, new GuicheService());
     }
 
     @Test
@@ -90,6 +92,58 @@ class PasswordServiceTest {
 
         Senha cancelada = service.cancelarSenha(criada.getId());
         assertThat(cancelada.getPasswordStatus()).isEqualTo(PasswordStatus.CANCELADA);
+    }
+
+    @Test
+    void deveGuardarNomeDaPessoaNaSenha() {
+        Senha senha = service.criarSenha(new CreatePassword(PasswordType.COMUM, "  Maria Silva "));
+        assertThat(senha.getNomeCliente()).isEqualTo("Maria Silva");
+    }
+
+    @Test
+    void deveIdentificarGuicheAoChamar() {
+        service.criarSenha(new CreatePassword(PasswordType.COMUM, "João"));
+        Senha chamada = service.chamarProximaSenha("3");
+
+        assertThat(chamada.getGuiche()).isEqualTo("03");
+        assertThat(chamada.getNomeGuiche()).isEqualTo("Preferencial");
+    }
+
+    @Test
+    void deveRecusarGuicheNaoCadastrado() {
+        assertThatThrownBy(() -> service.chamarProximaSenha("99"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void deveContarAtendimentosEGuicheQueMaisTrabalhou() {
+        for (int i = 0; i < 4; i++) {
+            service.criarSenha(new CreatePassword(PasswordType.COMUM, "Pessoa " + i));
+        }
+        service.chamarProximaSenha("01");
+        service.chamarProximaSenha("02");
+        service.chamarProximaSenha("02");
+
+        EstatisticasDTO stats = service.obterEstatisticas();
+        assertThat(stats.totalAtendimentos()).isEqualTo(3);
+        assertThat(stats.guicheMaisAtendimentos().numero()).isEqualTo("02");
+        assertThat(stats.guicheMaisAtendimentos().totalAtendimentos()).isEqualTo(2);
+        assertThat(stats.atendimentosPorGuiche()).hasSize(5);
+    }
+
+    @Test
+    void naoDeveTerGuicheDestaqueSemAtendimentos() {
+        EstatisticasDTO stats = service.obterEstatisticas();
+        assertThat(stats.totalAtendimentos()).isZero();
+        assertThat(stats.guicheMaisAtendimentos()).isNull();
+    }
+
+    @Test
+    void deveAdicionarNovoGuiche() {
+        service.adicionarGuiche("6", "Retirada de Documentos");
+        assertThat(service.listarGuiches()).extracting(g -> g.numero()).contains("06");
+        assertThatThrownBy(() -> service.adicionarGuiche("06", "Duplicado"))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

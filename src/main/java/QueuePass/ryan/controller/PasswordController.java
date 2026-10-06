@@ -1,9 +1,11 @@
 package QueuePass.ryan.controller;
 
 import QueuePass.ryan.dto.CallPasswordRequest;
+import QueuePass.ryan.dto.CreateGuicheRequest;
 import QueuePass.ryan.dto.CreatePassword;
 import QueuePass.ryan.dto.EstatisticasDTO;
 import QueuePass.ryan.dto.SenhaFilaDTO;
+import QueuePass.ryan.model.Guiche;
 import QueuePass.ryan.model.Senha;
 import QueuePass.ryan.service.PasswordService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -25,6 +28,9 @@ public class PasswordController {
 
     @PostMapping("/gerar-senha")
     public ResponseEntity<Senha> criarSenha(@RequestBody CreatePassword createPassword) {
+        if (createPassword.nomeCliente() == null || createPassword.nomeCliente().isBlank()) {
+            throw new IllegalArgumentException("Informe o nome da pessoa para gerar a senha.");
+        }
         Senha senha = passwordService.criarSenha(createPassword);
         return ResponseEntity.status(HttpStatus.CREATED).body(senha);
     }
@@ -75,6 +81,22 @@ public class PasswordController {
     @GetMapping("/estatisticas")
     public EstatisticasDTO obterEstatisticas() {
         return passwordService.obterEstatisticas();
+    }
+
+    @GetMapping("/guiches")
+    public List<Guiche> listarGuiches() {
+        return passwordService.listarGuiches();
+    }
+
+    @PostMapping("/guiches")
+    public ResponseEntity<Guiche> adicionarGuiche(@RequestBody CreateGuicheRequest request) {
+        Guiche guiche = passwordService.adicionarGuiche(request.numero(), request.nome());
+        return ResponseEntity.status(HttpStatus.CREATED).body(guiche);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> tratarErroValidacao(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
     }
 
     @PostMapping("/senhas/resetar")

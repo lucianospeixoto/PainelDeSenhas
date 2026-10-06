@@ -2,394 +2,1274 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Painel de Senhas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QueuePass · Painel de Senhas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
-        body { background: #0f172a; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; }
-
-        header {
-            background: #1e293b;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 3px solid #38bdf8;
-        }
-        header h1 { font-size: 28px; color: #38bdf8; }
-        .header-info { display: flex; align-items: center; gap: 20px; }
-        #relogio { font-size: 20px; color: #9fb0c8; }
-        #statusConexao {
-            font-size: 13px;
-            padding: 5px 12px;
-            border-radius: 20px;
-            background: #384559;
-            color: #94a3b8;
-        }
-        #statusConexao.online { background: #14532d; color: #4ade80; }
-        #statusConexao.offline { background: #450a0a; color: #f87171; }
-
-        main {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            gap: 20px;
-            padding: 20px 30px;
-            overflow: hidden;
+        :root {
+            --bg: #070b16;
+            --surface: #0f1628;
+            --surface-2: #151e35;
+            --surface-3: #1c2742;
+            --border: rgba(148, 163, 184, 0.12);
+            --border-forte: rgba(148, 163, 184, 0.22);
+            --text: #e8edf7;
+            --muted: #8b97b3;
+            --faint: #5a6684;
+            --accent: #7c83ff;
+            --accent-2: #2dd4bf;
+            --comum: #34d399;
+            --vip: #fbbf24;
+            --idoso: #fb7185;
+            --perigo: #f43f5e;
+            --raio: 20px;
+            --raio-sm: 12px;
+            --sombra: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 20px 40px -24px rgba(0, 0, 0, 0.6);
+            --fonte: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+            --fonte-num: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+            color-scheme: dark;
         }
 
-        .coluna-esquerda { display: flex; flex-direction: column; gap: 20px; overflow: hidden; }
-
-        .painel-atual {
-            background: #1e293b;
-            border-radius: 12px;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { background: var(--bg); }
+        body {
+            font-family: var(--fonte);
+            color: var(--text);
+            font-size: 14px;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px;
-            border: 2px solid #334155;
+            background:
+                radial-gradient(1200px 600px at -10% -20%, rgba(124, 131, 255, 0.16), transparent 60%),
+                radial-gradient(900px 500px at 110% 120%, rgba(45, 212, 191, 0.10), transparent 60%),
+                var(--bg);
+            -webkit-font-smoothing: antialiased;
         }
-        .painel-atual h2 { color: #94a3b8; font-size: 16px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
-        .senha-atual {
-            font-size: 80px;
-            font-weight: bold;
-            color: #4ade80;
-            text-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
-        }
-        .senha-atual.prioridade { color: #fb923c; text-shadow: 0 0 20px rgba(251, 146, 60, 0.5); }
-        .guiche-atual { font-size: 26px; color: #f1f5f9; margin-top: 8px; }
+        button, input, select { font: inherit; color: inherit; }
+        button { cursor: pointer; border: none; background: none; }
+        [hidden] { display: none !important; }
 
-        .stats-grid {
+        .i { width: 1em; height: 1em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* ---------- Topo ---------- */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(7, 11, 22, 0.6);
+            backdrop-filter: blur(12px);
+        }
+        .marca { display: flex; align-items: center; gap: 12px; }
+        .marca-logo {
+            width: 42px; height: 42px;
+            display: grid; place-items: center;
+            border-radius: 12px;
+            font-size: 22px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            box-shadow: 0 8px 24px -8px rgba(124, 131, 255, 0.7);
+        }
+        .marca strong { display: block; font-size: 17px; font-weight: 800; letter-spacing: -0.01em; }
+        .marca span { font-size: 12px; color: var(--muted); }
+
+        .topo-acoes { display: flex; align-items: center; gap: 10px; }
+        .conexao {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            font-size: 12px; font-weight: 600;
+            background: var(--surface-2);
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+        .conexao .ponto { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+        .conexao.online { color: var(--comum); }
+        .conexao.online .ponto { background: var(--comum); animation: pulsar 2s infinite; }
+        .conexao.offline { color: var(--idoso); }
+        .conexao.offline .ponto { background: var(--idoso); }
+
+        .icon-btn {
+            width: 40px; height: 40px;
+            display: grid; place-items: center;
+            border-radius: 12px;
+            font-size: 18px;
+            color: var(--muted);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            transition: color .15s, background .15s, border-color .15s;
+        }
+        .icon-btn:hover { color: var(--text); background: var(--surface-3); border-color: var(--border-forte); }
+        .icon-btn[aria-pressed="true"] { color: var(--accent); border-color: rgba(124, 131, 255, 0.4); }
+
+        .relogio { text-align: right; padding-left: 6px; }
+        .relogio strong { display: block; font-family: var(--fonte-num); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+        .relogio span { font-size: 12px; color: var(--muted); text-transform: capitalize; }
+
+        /* ---------- Layout ---------- */
+        .layout {
+            flex: 1;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
+            grid-template-columns: minmax(0, 1fr) 370px;
+            gap: 20px;
+            padding: 20px 24px 24px;
+            min-height: 0;
         }
-        .stat-card {
-            background: #1e293b;
-            border-radius: 12px;
-            padding: 18px;
-            border: 2px solid #334155;
+        .painel { display: flex; flex-direction: column; gap: 20px; min-width: 0; min-height: 0; }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--raio);
+            box-shadow: var(--sombra);
+        }
+        .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+        .card-head h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+        .card-head h2 .i { font-size: 16px; color: var(--faint); }
+        .contador {
+            min-width: 28px; padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 12px; font-weight: 700; text-align: center;
+            background: rgba(124, 131, 255, 0.14);
+            color: var(--accent);
+        }
+        .dica { font-size: 12px; color: var(--faint); }
+
+        /* ---------- Chamada atual ---------- */
+        .destaque { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 20px; }
+
+        .chamada {
+            --cor: var(--accent);
+            position: relative;
+            overflow: hidden;
+            min-height: 300px;
+            padding: 26px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 20px;
+            background:
+                radial-gradient(600px 300px at 0% 0%, color-mix(in srgb, var(--cor) 18%, transparent), transparent 70%),
+                var(--surface);
+            border-color: color-mix(in srgb, var(--cor) 30%, transparent);
+            transition: border-color .4s;
+        }
+        .chamada[data-tipo="COMUM"] { --cor: var(--comum); }
+        .chamada[data-tipo="VIP"] { --cor: var(--vip); }
+        .chamada[data-tipo="IDOSO"] { --cor: var(--idoso); }
+        .chamada::after {
+            content: '';
+            position: absolute;
+            right: -140px; top: 50%;
+            width: 380px; height: 380px;
+            border-radius: 50%;
+            transform: translateY(-50%);
+            border: 1px solid color-mix(in srgb, var(--cor) 22%, transparent);
+            box-shadow:
+                0 0 0 50px color-mix(in srgb, var(--cor) 4%, transparent),
+                0 0 0 100px color-mix(in srgb, var(--cor) 2.5%, transparent);
+            pointer-events: none;
+        }
+        .chamada > * { position: relative; z-index: 1; }
+
+        .chamada-topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .ao-vivo { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+        .ao-vivo .ponto { width: 10px; height: 10px; border-radius: 50%; background: var(--cor); animation: pulsar 2s infinite; }
+
+        .chamada-corpo { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+        .chamada-info { min-width: 0; }
+        .chip-tipo {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 12px; font-weight: 700;
+            color: var(--cor);
+            background: color-mix(in srgb, var(--cor) 14%, transparent);
+            border: 1px solid color-mix(in srgb, var(--cor) 28%, transparent);
+        }
+        .chamada-codigo {
+            font-family: var(--fonte-num);
+            font-weight: 700;
+            font-size: clamp(64px, 8vw, 136px);
+            line-height: 0.95;
+            letter-spacing: -0.03em;
+            margin: 14px 0 10px;
+            color: #fff;
+            text-shadow: 0 0 48px color-mix(in srgb, var(--cor) 45%, transparent);
+        }
+        .chamada-nome { font-size: clamp(20px, 2vw, 30px); font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
+        .chamada-nome.vazio { color: var(--faint); font-weight: 500; font-size: 18px; }
+
+        .guiche-box {
             text-align: center;
+            min-width: 150px;
+            padding: 16px 22px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-forte);
+            backdrop-filter: blur(6px);
         }
-        .stat-card .valor { font-size: 30px; font-weight: bold; color: #38bdf8; }
-        .stat-card .rotulo { font-size: 12px; color: #94a3b8; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .guiche-box small { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+        .guiche-box strong { display: block; font-family: var(--fonte-num); font-size: clamp(44px, 4.4vw, 68px); line-height: 1.05; color: var(--cor); }
+        .guiche-box span { display: block; font-size: 13px; color: var(--text); font-weight: 600; }
 
-        .lista-historico {
-            background: #1e293b;
-            border-radius: 12px;
-            padding: 20px;
-            border: 2.5px solid #334155;
-            overflow-y: auto;
+        .chamada.anunciando { animation: anel 1.1s ease-out 3; }
+        .chamada.anunciando .chamada-codigo { animation: surgir .6s cubic-bezier(.2, .9, .3, 1.3), piscar 1s ease-in-out .6s 3; }
+
+        .status {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 11px;
+            border-radius: 999px;
+            font-size: 12px; font-weight: 700;
+            background: var(--surface-3);
+            color: var(--muted);
         }
-        .lista-historico h2 { color: #94a3b8; font-size: 16px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
-        .item-historico {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 15px;
-            margin-bottom: 8px;
-            background: #0f172a;
-            border-radius: 8px;
+        .status.CHAMADA { background: rgba(45, 212, 191, 0.12); color: var(--accent-2); }
+        .status.FINALIZADA { background: rgba(52, 211, 153, 0.12); color: var(--comum); }
+        .status.CANCELADA { background: rgba(251, 113, 133, 0.12); color: var(--idoso); }
+
+        /* ---------- Listas ---------- */
+        .recentes, .fila, .ranking { padding: 20px 22px; display: flex; flex-direction: column; min-height: 0; }
+        .lista { list-style: none; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; min-height: 0; padding-right: 4px; }
+        .lista::-webkit-scrollbar { width: 6px; }
+        .lista::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
+
+        .item {
+            --cor: var(--comum);
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px;
+            border-radius: var(--raio-sm);
+            background: var(--surface-2);
+            border: 1px solid transparent;
+        }
+        .item[data-tipo="VIP"] { --cor: var(--vip); }
+        .item[data-tipo="IDOSO"] { --cor: var(--idoso); }
+        .item:hover { border-color: var(--border-forte); }
+        .item-codigo { font-family: var(--fonte-num); font-weight: 700; font-size: 18px; color: var(--cor); min-width: 58px; }
+        .item-texto { flex: 1; min-width: 0; }
+        .item-texto > strong { display: block; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-texto > span { display: block; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-lado { text-align: right; font-size: 12px; color: var(--muted); white-space: nowrap; }
+        .item-lado b { display: block; font-size: 14px; color: var(--text); font-weight: 600; }
+
+        .posicao {
+            width: 30px; height: 30px; flex-shrink: 0;
+            display: grid; place-items: center;
+            border-radius: 50%;
+            font-size: 12px; font-weight: 800;
+            color: var(--cor);
+            background: color-mix(in srgb, var(--cor) 14%, transparent);
+        }
+        .tag {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 2px 8px; border-radius: 999px;
+            font-size: 11px; font-weight: 700;
+            color: var(--cor);
+            background: color-mix(in srgb, var(--cor) 12%, transparent);
+        }
+
+        .vazio-estado {
+            flex: 1;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+            padding: 24px 12px;
+            text-align: center;
+            color: var(--faint);
+            font-size: 13px;
+        }
+        .vazio-estado .i { font-size: 30px; color: var(--surface-3); stroke-width: 1.5; }
+
+        /* ---------- KPIs ---------- */
+        .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+        .kpi { --cor: var(--accent); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+        .kpi-icone {
+            width: 34px; height: 34px;
+            display: grid; place-items: center;
+            border-radius: 10px;
             font-size: 17px;
-            border-left: 4px solid #4ade80;
+            color: var(--cor);
+            background: color-mix(in srgb, var(--cor) 14%, transparent);
         }
-        .item-historico.prioridade { border-left-color: #fb923c; }
-        .item-historico span:last-child { color: #94a3b8; font-size: 14px; }
+        .kpi-valor { font-family: var(--fonte-num); font-size: 28px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+        .kpi-rotulo { font-size: 12px; color: var(--muted); font-weight: 500; }
+        .kpi-sub { font-size: 11px; color: var(--faint); margin-top: -6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .coluna-direita { overflow-y: auto; }
-        .fila-item {
-            display: flex;
-            justify-content: space-between;
+        /* ---------- Parte inferior ---------- */
+        .inferior { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px; min-height: 0; }
+
+        .rank { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--raio-sm); background: var(--surface-2); }
+        .rank-pos { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; font-size: 13px; font-weight: 800; color: var(--muted); background: var(--surface-3); }
+        .rank.lider { background: linear-gradient(90deg, rgba(251, 191, 36, 0.12), var(--surface-2) 70%); border: 1px solid rgba(251, 191, 36, 0.25); }
+        .rank.lider .rank-pos { color: #1a1300; background: var(--vip); font-size: 15px; }
+        .rank-nome { display: flex; align-items: baseline; gap: 8px; font-size: 13px; margin-bottom: 7px; min-width: 0; }
+        .rank-nome b { font-family: var(--fonte-num); font-size: 15px; }
+        .rank-nome span { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .barra { height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; }
+        .barra div { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .6s cubic-bezier(.2, .8, .2, 1); }
+        .rank.lider .barra div { background: linear-gradient(90deg, #f59e0b, var(--vip)); }
+        .rank-total { font-family: var(--fonte-num); font-size: 20px; font-weight: 700; min-width: 32px; text-align: right; }
+
+        /* ---------- Operação ---------- */
+        .operacao { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+        .op { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+        .op-head { display: flex; align-items: center; gap: 12px; }
+        .op-passo {
+            width: 30px; height: 30px; flex-shrink: 0;
+            display: grid; place-items: center;
+            border-radius: 50%;
+            font-weight: 800; font-size: 13px;
+            color: var(--accent);
+            background: rgba(124, 131, 255, 0.14);
+            border: 1px solid rgba(124, 131, 255, 0.3);
+        }
+        .op-head h3 { font-size: 16px; font-weight: 700; }
+        .op-head p { font-size: 12px; color: var(--muted); }
+
+        .campo { display: flex; flex-direction: column; gap: 8px; }
+        .campo > span { font-size: 12px; font-weight: 600; color: var(--muted); }
+        .input-icone { position: relative; }
+        .input-icone .i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--faint); font-size: 17px; pointer-events: none; }
+        .input, .select {
+            width: 100%;
+            height: 46px;
+            padding: 0 14px 0 42px;
+            border-radius: var(--raio-sm);
+            background: var(--surface-2);
+            border: 1px solid var(--border-forte);
+            outline: none;
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .input::placeholder { color: var(--faint); }
+        .input:focus, .select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(124, 131, 255, 0.18); }
+        .input.erro { border-color: var(--perigo); box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.15); animation: tremer .3s; }
+        .select { appearance: none; cursor: pointer; padding-right: 36px; }
+        .select-wrap::after { content: ''; position: absolute; right: 16px; top: 50%; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+        .linha { display: flex; gap: 8px; }
+        .linha .input-icone { flex: 1; }
+        .linha .icon-btn { width: 46px; height: 46px; }
+
+        .tipos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .tipo {
+            --cor: var(--comum);
+            display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+            padding: 12px;
+            border-radius: var(--raio-sm);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            text-align: left;
+            transition: border-color .15s, background .15s, transform .1s;
+        }
+        .tipo[data-tipo="VIP"] { --cor: var(--vip); }
+        .tipo[data-tipo="IDOSO"] { --cor: var(--idoso); }
+        .tipo .i { font-size: 18px; color: var(--cor); }
+        .tipo strong { font-size: 13px; }
+        .tipo small { font-size: 11px; color: var(--muted); line-height: 1.3; }
+        .tipo:hover { border-color: var(--border-forte); }
+        .tipo:active { transform: scale(0.97); }
+        .tipo[aria-checked="true"] {
+            border-color: color-mix(in srgb, var(--cor) 60%, transparent);
+            background: color-mix(in srgb, var(--cor) 10%, var(--surface-2));
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--cor) 14%, transparent);
+        }
+
+        .btn {
+            height: 50px;
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 0 18px;
+            border-radius: 14px;
+            font-weight: 700; font-size: 15px;
+            transition: transform .1s, filter .15s, opacity .15s, box-shadow .15s;
+        }
+        .btn .i { font-size: 19px; }
+        .btn:hover { filter: brightness(1.08); }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: .55; cursor: progress; }
+        .btn-bloco { width: 100%; }
+        .btn-primario { color: #fff; background: linear-gradient(135deg, var(--accent), #5b62f0); box-shadow: 0 10px 24px -10px rgba(124, 131, 255, 0.8); }
+        .btn-chamar { height: 58px; font-size: 16px; color: #04211c; background: linear-gradient(135deg, #5eead4, var(--accent-2)); box-shadow: 0 10px 24px -10px rgba(45, 212, 191, 0.7); }
+        .btn-secundario { height: 40px; font-size: 13px; background: var(--surface-3); border: 1px solid var(--border-forte); }
+        .btn-sucesso { height: 40px; font-size: 13px; color: #032016; background: var(--comum); }
+        .btn-perigo { color: #fff; background: var(--perigo); }
+        kbd { font-family: var(--fonte); font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 6px; background: rgba(0, 0, 0, 0.18); }
+
+        .ticket {
+            --cor: var(--comum);
+            position: relative;
+            border-radius: 16px;
+            background: #f8fafc;
+            color: #0f172a;
+            padding: 16px 18px;
+            display: grid;
+            grid-template-columns: 1fr auto;
             align-items: center;
-            padding: 10px 15px;
-            margin-bottom: 6px;
-            background: #0f172a;
-            border-radius: 8px;
-            font-size: 14px;
+            gap: 4px 12px;
+            animation: imprimir .5s cubic-bezier(.2, .9, .3, 1.2);
         }
-        .fila-item .codigo { font-weight: bold; font-size: 16px; }
-        .fila-item.prioridade .codigo { color: #fb923c; }
-        .fila-item .espera { color: #94a3b8; font-size: 13px; }
+        .ticket[data-tipo="VIP"] { --cor: #d97706; }
+        .ticket[data-tipo="IDOSO"] { --cor: #e11d48; }
+        .ticket[data-tipo="COMUM"] { --cor: #059669; }
+        .ticket::before, .ticket::after { content: ''; position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%; background: var(--surface); transform: translateY(-50%); }
+        .ticket::before { left: -9px; }
+        .ticket::after { right: -9px; }
+        .ticket small { grid-column: 1 / -1; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #64748b; }
+        .ticket-codigo { font-family: var(--fonte-num); font-size: 38px; font-weight: 700; color: var(--cor); line-height: 1; }
+        .ticket-dados { text-align: right; font-size: 12px; color: #475569; }
+        .ticket-dados b { display: block; font-size: 14px; color: #0f172a; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        footer {
-            background: #1e293b;
-            padding: 18px 30px;
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            border-top: 3px solid #38bdf8;
-            flex-wrap: wrap;
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #0f172a; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        header { background: #1e293b; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; }
-        h1 { font-size: 24px; color: #38bdf8; display: flex; align-items: center; gap: 10px; }
-        .header-info { display: flex; gap: 20px; font-size: 18px; color: #94a3b8; }
-        .online { color: #4ade80; }
-        .offline { color: #f87171; }
-        main { display: flex; flex: 1; padding: 20px; gap: 20px; overflow: hidden; }
-        .coluna-esquerda { flex: 2; display: flex; flex-direction: column; gap: 20px; }
-        .coluna-direita { flex: 1; background: #1e293b; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; }
-        .painel-atual { background: #1e293b; border-radius: 12px; padding: 40px; text-align: center; border: 2px solid #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.2); }
-        .painel-atual h2 { color: #94a3b8; font-size: 20px; text-transform: uppercase; letter-spacing: 2px; }
-        .senha-atual { font-size: 120px; font-weight: bold; color: #f8fafc; margin: 20px 0; text-shadow: 0 0 30px rgba(255,255,255,0.3); }
-        .senha-atual.idoso { color: #f43f5e; text-shadow: 0 0 30px rgba(244, 63, 94, 0.4); }
-        .senha-atual.vip { color: #fb923c; text-shadow: 0 0 30px rgba(251, 146, 60, 0.4); }
-        .senha-atual.comum { color: #4ade80; text-shadow: 0 0 30px rgba(74, 222, 128, 0.4); }
-        .guiche-atual { font-size: 40px; color: #38bdf8; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-        .stat-card { background: #1e293b; padding: 20px; border-radius: 12px; text-align: center; }
-        .stat-card .valor { font-size: 28px; font-weight: bold; color: #38bdf8; }
-        .stat-card .rotulo { font-size: 12px; color: #94a3b8; text-transform: uppercase; margin-top: 5px; }
-        .lista-historico { background: #1e293b; border-radius: 12px; padding: 20px; flex: 1; overflow-y: auto; }
-        .lista-historico h2 { color: #94a3b8; font-size: 16px; margin-bottom: 15px; text-transform: uppercase; }
-        .item-historico { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #334155; font-size: 20px; }
-        .item-historico:last-child { border-bottom: none; }
-        .item-historico.idoso { color: #f73958; }
-        .item-historico.vip { color: #fb923c; }
-        .item-historico.comum { color: #4ade80; }
-        .fila-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #0f172a; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #4ade80; }
-        .fila-item.idoso { border-left-color: #f43f5e; }
-        .fila-item.vip { border-left-color: #fb923c; }
-        .fila-item .codigo { font-size: 18px; font-weight: bold; }
-        .fila-item .espera { font-size: 14px; color: #94a3b8; }
-        footer { background: #1e293b; padding: 20px 40px; display: flex; gap: 15px; border-top: 2px solid #334155; }
-        button { 
-            padding: 15px 30px; 
-            border: none; 
-            border-radius: 8px; 
-            font-size: 16px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: transform 0.1s; 
+        .atendimento {
+            --cor: var(--comum);
+            border-radius: var(--raio-sm);
+            border: 1px dashed var(--border-forte);
+            padding: 14px;
         }
-        button:active { transform: scale(0.96); }
-        .btn-comum { background: #30dd6f; color: #0f172a; }
-        .btn-vip { background: #fb923c; color: #0f172a; }
-        .btn-idoso { background: #f43f5e; color: #0f172a; }
-        .btn-chamar { background: #2fbcf9; color: #0f172a; margin-left: auto; }
-        select { padding: 14px; border-radius: 8px; border: none; font-size: 16px; background: #0f172a; color: white; }
+        .atendimento[data-tipo] { border-style: solid; border-color: color-mix(in srgb, var(--cor) 35%, transparent); background: color-mix(in srgb, var(--cor) 6%, transparent); }
+        .atendimento[data-tipo="VIP"] { --cor: var(--vip); }
+        .atendimento[data-tipo="IDOSO"] { --cor: var(--idoso); }
+        .atendimento-topo { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 8px; }
+        .atendimento-corpo { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; min-width: 0; }
+        .atendimento-corpo b { font-family: var(--fonte-num); font-size: 30px; color: var(--cor); }
+        .atendimento-corpo span { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .atendimento-acoes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .atendimento-vazio { display: flex; align-items: center; gap: 10px; color: var(--faint); font-size: 13px; }
+        .atendimento-vazio .i { font-size: 18px; }
 
-        @keyframes piscar {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
+        .btn-link {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 10px;
+            border-radius: var(--raio-sm);
+            font-size: 13px; font-weight: 600;
+            color: var(--faint);
+            transition: color .15s, background .15s;
         }
-        .piscando { animation: piscar 1s infinite; }
+        .btn-link:hover { color: var(--perigo); background: rgba(244, 63, 94, 0.08); }
+
+        /* ---------- Modais ---------- */
+        dialog {
+            margin: auto;
+            width: min(420px, calc(100vw - 32px));
+            padding: 24px;
+            border-radius: var(--raio);
+            border: 1px solid var(--border-forte);
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.8);
+        }
+        dialog[open] { animation: surgir .25s ease-out; }
+        dialog::backdrop { background: rgba(3, 6, 14, 0.65); backdrop-filter: blur(4px); }
+        dialog form { display: flex; flex-direction: column; gap: 16px; }
+        .modal-icone { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 14px; font-size: 22px; background: rgba(124, 131, 255, 0.14); color: var(--accent); }
+        .modal-icone.perigo { background: rgba(244, 63, 94, 0.14); color: var(--perigo); }
+        dialog h3 { font-size: 18px; font-weight: 700; }
+        dialog p { color: var(--muted); font-size: 14px; line-height: 1.5; margin-top: 4px; }
+        .modal-acoes { display: flex; gap: 10px; justify-content: flex-end; }
+        .modal-acoes .btn { height: 44px; font-size: 14px; }
+        .campos-guiche { display: grid; grid-template-columns: 110px 1fr; gap: 10px; }
+        .campos-guiche .input { padding-left: 14px; }
+
+        /* ---------- Toasts ---------- */
+        .toasts { position: fixed; right: 20px; bottom: 20px; z-index: 50; display: flex; flex-direction: column; gap: 10px; width: min(360px, calc(100vw - 32px)); }
+        .toast {
+            --cor: var(--accent);
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-forte);
+            border-left: 4px solid var(--cor);
+            box-shadow: 0 20px 40px -16px rgba(0, 0, 0, 0.7);
+            animation: toastEntrar .3s cubic-bezier(.2, .9, .3, 1.2);
+        }
+        .toast.sucesso { --cor: var(--comum); }
+        .toast.erro { --cor: var(--perigo); }
+        .toast.aviso { --cor: var(--vip); }
+        .toast .i { font-size: 18px; color: var(--cor); margin-top: 1px; }
+        .toast strong { display: block; font-size: 14px; }
+        .toast span { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+        .toast.saindo { animation: toastSair .25s ease-in forwards; }
+
+        /* ---------- Animações ---------- */
+        @keyframes pulsar { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(.8); } }
+        @keyframes anel { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--cor) 55%, transparent); } 100% { box-shadow: 0 0 0 24px transparent; } }
+        @keyframes surgir { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+        @keyframes piscar { 50% { opacity: .35; } }
+        @keyframes imprimir { from { opacity: 0; transform: translateY(-12px) scale(.96); } to { opacity: 1; transform: none; } }
+        @keyframes tremer { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+        @keyframes toastEntrar { from { opacity: 0; transform: translateY(16px) scale(.96); } to { opacity: 1; transform: none; } }
+        @keyframes toastSair { to { opacity: 0; transform: translateX(24px); } }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+        /* ---------- Modo TV ---------- */
+        body.modo-tv .operacao { display: none; }
+        body.modo-tv .layout { grid-template-columns: minmax(0, 1fr); }
+        body.modo-tv .chamada { min-height: 44vh; }
+        body.modo-tv .chamada-codigo { font-size: clamp(96px, 13vw, 230px); }
+        body.modo-tv .guiche-box strong { font-size: clamp(64px, 7vw, 120px); }
+        body.modo-tv .guiche-box { min-width: 220px; padding: 22px 30px; }
+
+        /* ---------- Responsivo ---------- */
+        @media (min-width: 1101px) {
+            body { height: 100vh; overflow: hidden; }
+            .inferior { flex: 1; }
+            .operacao { overflow-y: auto; padding-right: 2px; }
+            .recentes .lista { max-height: 300px; }
+        }
+        @media (max-width: 1100px) {
+            .layout { grid-template-columns: minmax(0, 1fr); }
+            .operacao { order: -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+            .operacao .btn-link { grid-column: 1 / -1; }
+            .fila .lista, .ranking .lista { max-height: 420px; }
+        }
+        @media (max-width: 760px) {
+            .topbar { padding: 12px 16px; }
+            .relogio, .marca span, .conexao .txt { display: none; }
+            .layout { padding: 16px; gap: 16px; }
+            .operacao, .destaque, .inferior { grid-template-columns: minmax(0, 1fr); }
+            .op { padding: 16px; }
+            .tipo { padding: 10px; }
+            .tipo small { display: none; }
+            .guiche-box { min-width: 0; }
+            .chamada { padding: 22px 20px; min-height: 0; }
+            .kpis { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
 
-<header>
-    <h1>🎫 QueuePass Painel</h1>
-    <div class="header-info">
-        <span id="statusConexao">conectando...</span>
-        <span id="relogio"></span>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
+    <symbol id="i-megaphone" viewBox="0 0 24 24"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></symbol>
+    <symbol id="i-volume-x" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.17a2 2 0 0 0-.59-1.42L12 12l-4.41 4.41A2 2 0 0 0 7 17.83V22"/><path d="M7 2v4.17a2 2 0 0 0 .59 1.42L12 12l4.41-4.41A2 2 0 0 0 17 6.17V2"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+    <symbol id="i-desk" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></symbol>
+</svg>
+
+<header class="topbar">
+    <div class="marca">
+        <div class="marca-logo"><svg class="i"><use href="#i-ticket"/></svg></div>
+        <div>
+            <strong>QueuePass</strong>
+            <span>Painel de atendimento</span>
+        </div>
+    </div>
+    <div class="topo-acoes">
+        <span id="conexao" class="conexao"><span class="ponto"></span><span class="txt">Conectando…</span></span>
+        <button class="icon-btn" id="btnSom" title="Ativar/desativar som das chamadas" aria-pressed="true"><svg class="i"><use href="#i-volume"/></svg></button>
+        <button class="icon-btn" id="btnTv" title="Modo TV (tela cheia, só o painel)" aria-pressed="false"><svg class="i"><use href="#i-monitor"/></svg></button>
+        <div class="relogio">
+            <strong id="hora">--:--</strong>
+            <span id="data"></span>
+        </div>
     </div>
 </header>
 
-<main>
-    <div class="coluna-esquerda">
-        <div class="painel-atual">
-            <h2>Senha Atual</h2>
-            <div id="senhaAtual" class="senha-atual">--</div>
-            <div id="guicheAtual" class="guiche-atual">Aguardando chamada...</div>
+<div class="layout">
+    <main class="painel">
+        <section class="destaque">
+            <article class="card chamada" id="cardChamada" aria-live="polite">
+                <div class="chamada-topo">
+                    <span class="ao-vivo"><span class="ponto"></span>Chamando agora</span>
+                    <span class="status" id="chamadaStatus" hidden></span>
+                </div>
+                <div class="chamada-corpo">
+                    <div class="chamada-info">
+                        <span class="chip-tipo" id="chamadaTipo" hidden></span>
+                        <div class="chamada-codigo" id="chamadaCodigo">– – –</div>
+                        <div class="chamada-nome vazio" id="chamadaNome">Aguardando a primeira chamada</div>
+                    </div>
+                    <div class="guiche-box" id="chamadaGuiche" hidden>
+                        <small>Guichê</small>
+                        <strong id="chamadaGuicheNum"></strong>
+                        <span id="chamadaGuicheNome"></span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="card recentes">
+                <div class="card-head">
+                    <h2><svg class="i"><use href="#i-history"/></svg>Chamadas anteriores</h2>
+                </div>
+                <ol class="lista" id="listaRecentes"></ol>
+            </article>
+        </section>
+
+        <section class="kpis">
+            <div class="card kpi" style="--cor: var(--accent)">
+                <div class="kpi-icone"><svg class="i"><use href="#i-users"/></svg></div>
+                <div class="kpi-valor" id="kpiFila">0</div>
+                <div class="kpi-rotulo">Pessoas na fila</div>
+            </div>
+            <div class="card kpi" style="--cor: var(--accent-2)">
+                <div class="kpi-icone"><svg class="i"><use href="#i-activity"/></svg></div>
+                <div class="kpi-valor" id="kpiAtendimentos">0</div>
+                <div class="kpi-rotulo">Total de atendimentos</div>
+            </div>
+            <div class="card kpi" style="--cor: var(--vip)">
+                <div class="kpi-icone"><svg class="i"><use href="#i-trophy"/></svg></div>
+                <div class="kpi-valor" id="kpiDestaque">—</div>
+                <div class="kpi-rotulo">Guichê destaque</div>
+                <div class="kpi-sub" id="kpiDestaqueSub">Sem atendimentos</div>
+            </div>
+            <div class="card kpi" style="--cor: var(--comum)">
+                <div class="kpi-icone"><svg class="i"><use href="#i-check-circle"/></svg></div>
+                <div class="kpi-valor" id="kpiFinalizadas">0</div>
+                <div class="kpi-rotulo">Finalizados</div>
+            </div>
+            <div class="card kpi" style="--cor: var(--idoso)">
+                <div class="kpi-icone"><svg class="i"><use href="#i-hourglass"/></svg></div>
+                <div class="kpi-valor" id="kpiEspera">0 s</div>
+                <div class="kpi-rotulo">Espera média</div>
+            </div>
+            <div class="card kpi" style="--cor: #a78bfa">
+                <div class="kpi-icone"><svg class="i"><use href="#i-clock"/></svg></div>
+                <div class="kpi-valor" id="kpiAtendimentoMedio">0 s</div>
+                <div class="kpi-rotulo">Atendimento médio</div>
+            </div>
+        </section>
+
+        <section class="inferior">
+            <article class="card fila">
+                <div class="card-head">
+                    <h2><svg class="i"><use href="#i-list"/></svg>Fila de espera</h2>
+                    <span class="contador" id="filaContador">0</span>
+                </div>
+                <ol class="lista" id="listaFila"></ol>
+            </article>
+            <article class="card ranking">
+                <div class="card-head">
+                    <h2><svg class="i"><use href="#i-chart"/></svg>Atendimentos por guichê</h2>
+                    <span class="dica" id="rankingDica"></span>
+                </div>
+                <ol class="lista" id="listaRanking"></ol>
+            </article>
+        </section>
+    </main>
+
+    <aside class="operacao">
+        <section class="card op">
+            <div class="op-head">
+                <span class="op-passo">1</span>
+                <div>
+                    <h3>Emitir senha</h3>
+                    <p>Recepção · cadastre a pessoa na fila</p>
+                </div>
+            </div>
+            <label class="campo">
+                <span>Nome da pessoa</span>
+                <div class="input-icone">
+                    <svg class="i"><use href="#i-user"/></svg>
+                    <input id="inputNome" class="input" type="text" placeholder="Ex.: Maria da Silva" maxlength="60" autocomplete="off">
+                </div>
+            </label>
+            <div class="campo">
+                <span>Tipo de atendimento</span>
+                <div class="tipos" role="radiogroup" aria-label="Tipo de atendimento" id="tipos">
+                    <button type="button" class="tipo" role="radio" data-tipo="COMUM" aria-checked="true">
+                        <svg class="i"><use href="#i-user"/></svg><strong>Comum</strong><small>Atendimento geral</small>
+                    </button>
+                    <button type="button" class="tipo" role="radio" data-tipo="VIP" aria-checked="false">
+                        <svg class="i"><use href="#i-star"/></svg><strong>VIP</strong><small>Prioridade média</small>
+                    </button>
+                    <button type="button" class="tipo" role="radio" data-tipo="IDOSO" aria-checked="false">
+                        <svg class="i"><use href="#i-heart"/></svg><strong>Idoso</strong><small>Prioridade máxima</small>
+                    </button>
+                </div>
+            </div>
+            <button class="btn btn-primario btn-bloco" id="btnEmitir">
+                <svg class="i"><use href="#i-ticket"/></svg>Emitir senha <kbd>Enter</kbd>
+            </button>
+            <div class="ticket" id="ticket" hidden></div>
+        </section>
+
+        <section class="card op">
+            <div class="op-head">
+                <span class="op-passo">2</span>
+                <div>
+                    <h3>Chamar atendimento</h3>
+                    <p>Guichê · chame a próxima pessoa da fila</p>
+                </div>
+            </div>
+            <div class="campo">
+                <span>Seu guichê</span>
+                <div class="linha">
+                    <div class="input-icone select-wrap">
+                        <svg class="i"><use href="#i-desk"/></svg>
+                        <select id="selectGuiche" class="select" aria-label="Guichê"></select>
+                    </div>
+                    <button class="icon-btn" id="btnNovoGuiche" title="Cadastrar novo guichê"><svg class="i"><use href="#i-plus"/></svg></button>
+                </div>
+            </div>
+            <button class="btn btn-chamar btn-bloco" id="btnChamar">
+                <svg class="i"><use href="#i-megaphone"/></svg>Chamar próxima <kbd>F2</kbd>
+            </button>
+            <div class="atendimento" id="atendimento"></div>
+        </section>
+
+        <button class="btn-link" id="btnResetar"><svg class="i"><use href="#i-reset"/></svg>Reiniciar o dia</button>
+    </aside>
+</div>
+
+<dialog id="dlgGuiche">
+    <form id="formGuiche">
+        <div class="modal-icone"><svg class="i"><use href="#i-desk"/></svg></div>
+        <div>
+            <h3>Novo guichê</h3>
+            <p>Informe o número e uma identificação para o guichê aparecer no painel.</p>
         </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="valor" id="statAguardando">0</div>
-                <div class="rotulo">Na fila</div>
-            </div>
-            <div class="stat-card">
-                <div class="valor" id="statAtendidas">0</div>
-                <div class="rotulo">Atendidas</div>
-            </div>
-            <div class="stat-card">
-                <div class="valor" id="statTempoAtendimento">0 min</div>
-                <div class="rotulo">Tempo médio atend.</div>
-            </div>
-            <div class="stat-card">
-                <div class="valor" id="statTempoEspera">0 min</div>
-                <div class="rotulo">Tempo médio espera</div>
-            </div>
+        <div class="campos-guiche">
+            <label class="campo"><span>Número</span><input class="input" id="guicheNumero" inputmode="numeric" placeholder="06" maxlength="4" required></label>
+            <label class="campo"><span>Identificação</span><input class="input" id="guicheNome" placeholder="Ex.: Retirada de documentos" maxlength="40" required></label>
         </div>
-    </div>
-
-    <div class="coluna-direita">
-        <h2>Histórico de Chamadas</h2>
-        <div class="lista-historico" id="historico">
-            <!-- Histórico preenchido via JS -->
+        <div class="modal-acoes">
+            <button type="button" class="btn btn-secundario" data-fechar>Cancelar</button>
+            <button type="submit" class="btn btn-primario">Cadastrar</button>
         </div>
-    </div>
-</main>
+    </form>
+</dialog>
 
-<main style="display:none;">
-    <!-- Elementos ocultos mantidos para compatibilidade com funções JS existentes se necessário -->
-</main>
+<dialog id="dlgReset">
+    <form id="formReset">
+        <div class="modal-icone perigo"><svg class="i"><use href="#i-reset"/></svg></div>
+        <div>
+            <h3>Reiniciar o dia?</h3>
+            <p>Todas as senhas, a fila e as estatísticas serão apagadas e a numeração volta para 001. Os guichês cadastrados são mantidos.</p>
+        </div>
+        <div class="modal-acoes">
+            <button type="button" class="btn btn-secundario" data-fechar>Cancelar</button>
+            <button type="submit" class="btn btn-perigo">Reiniciar</button>
+        </div>
+    </form>
+</dialog>
 
-<div style="display:none;" id="filaDetalhada"></div>
-
-<footer>
-    <button class="btn-comum" onclick="gerarSenha('COMUM')">+ Senha Comum</button>
-    <button class="btn-vip" onclick="gerarSenha('VIP')">+ Senha VIP</button>
-    <button class="btn-idoso" onclick="gerarSenha('IDOSO')">+ Senha Idoso</button>
-    
-    <select id="guicheSelect">
-        <option value="01">Guichê 01</option>
-        <option value="02">Guichê 02</option>
-        <option value="03">Guichê 03</option>
-    </select>
-    <button class="btn-chamar" onclick="chamarSenha()">🔊 Chamar Próxima</button>
-</footer>
+<div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script>
-    const API_URL = '/api';
+    const API = '/api';
+    const TIPOS = {
+        COMUM: { rotulo: 'Comum', icone: 'user' },
+        VIP:   { rotulo: 'VIP', icone: 'star' },
+        IDOSO: { rotulo: 'Idoso', icone: 'heart' }
+    };
+    const STATUS = { AGUARDANDO: 'Aguardando', CHAMADA: 'Em atendimento', FINALIZADA: 'Finalizado', CANCELADA: 'Cancelado' };
 
-    function atualizarRelogio() {
-        document.getElementById('relogio').textContent = new Date().toLocaleTimeString('pt-BR');
+    const estado = {
+        senhas: [],
+        fila: [],
+        stats: null,
+        guiches: [],
+        tipo: 'COMUM',
+        som: lerPref('som', '1') === '1',
+        chaveUltimaChamada: null,
+        inicializado: false
+    };
+
+    // ---------- Utilitários ----------
+    const $ = id => document.getElementById(id);
+    const icone = (nome, classe = '') => `<svg class="i ${classe}" aria-hidden="true"><use href="#i-${nome}"/></svg>`;
+
+    function esc(texto) {
+        const div = document.createElement('div');
+        div.textContent = texto ?? '';
+        return div.innerHTML;
     }
-    setInterval(atualizarRelogio, 1000);
-    atualizarRelogio();
 
-    async function gerarSenha(tipo) {
-        try {
-            const res = await fetch(`${API_URL}/gerar-senha`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ passwordType: tipo })
-            });
-            const senha = await res.json();
-            alert(`Senha gerada: ${senha.code}`);
-        } catch (e) {
-            alert('Erro ao gerar senha. Verifique se a API está rodando.');
-            console.error(e);
+    function lerPref(chave, padrao) {
+        try { return localStorage.getItem('queuepass.' + chave) ?? padrao; } catch { return padrao; }
+    }
+
+    function salvarPref(chave, valor) {
+        try { localStorage.setItem('queuepass.' + chave, valor); } catch { }
+    }
+
+    async function api(caminho, opcoes = {}) {
+        const res = await fetch(API + caminho, { headers: { 'Content-Type': 'application/json' }, ...opcoes });
+        if (res.status === 204) return null;
+        if (!res.ok) {
+            let mensagem = 'Não foi possível concluir a operação.';
+            try { const corpo = await res.json(); if (corpo.erro) mensagem = corpo.erro; } catch { }
+            throw new Error(mensagem);
         }
+        return res.json();
     }
 
-    async function chamarSenha() {
-        const guiche = document.getElementById('guicheSelect').value;
-        try {
-            const res = await fetch(`${API_URL}/chamar-senha`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ guiche })
-            });
+    const horaCurta = iso => iso ? new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
 
-            if (res.status === 204) {
-                alert('Nenhuma senha aguardando na fila.');
-                return;
+    function tempoDesde(iso) {
+        const minutos = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+        if (minutos < 1) return 'agora mesmo';
+        if (minutos < 60) return `há ${minutos} min`;
+        return `há ${Math.floor(minutos / 60)} h ${minutos % 60} min`;
+    }
+
+    function formatarMinutos(valor) {
+        if (!valor) return '0 s';
+        if (valor < 1) return `${Math.round(valor * 60)} s`;
+        return `${valor.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} min`;
+    }
+
+    const nomeGuiche = numero => estado.guiches.find(g => g.numero === numero)?.nome ?? '';
+    const ordenarPorChamada = (a, b) => new Date(b.calledAt) - new Date(a.calledAt);
+
+    function vazio(iconeNome, texto) {
+        return `<li class="vazio-estado">${icone(iconeNome)}<span>${texto}</span></li>`;
+    }
+
+    function toast(tipo, titulo, texto = '') {
+        const icones = { sucesso: 'check-circle', erro: 'alert', aviso: 'info', info: 'info' };
+        const el = document.createElement('div');
+        el.className = `toast ${tipo}`;
+        el.innerHTML = `${icone(icones[tipo])}<div><strong>${esc(titulo)}</strong>${texto ? `<span>${esc(texto)}</span>` : ''}</div>`;
+        $('toasts').appendChild(el);
+        setTimeout(() => {
+            el.classList.add('saindo');
+            el.addEventListener('animationend', () => el.remove(), { once: true });
+        }, 3800);
+    }
+
+    async function comCarregamento(botao, acao) {
+        if (botao.disabled) return;
+        botao.disabled = true;
+        try { await acao(); } finally { botao.disabled = false; }
+    }
+
+    // ---------- Som e voz ----------
+    let audioCtx;
+    function tocarAviso() {
+        return new Promise(resolve => {
+            try {
+                audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+                const t = audioCtx.currentTime;
+                [[880, 0], [660, 0.3]].forEach(([freq, atraso]) => {
+                    const osc = audioCtx.createOscillator();
+                    const ganho = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    ganho.gain.setValueAtTime(0.0001, t + atraso);
+                    ganho.gain.exponentialRampToValueAtTime(0.25, t + atraso + 0.02);
+                    ganho.gain.exponentialRampToValueAtTime(0.0001, t + atraso + 0.7);
+                    osc.connect(ganho).connect(audioCtx.destination);
+                    osc.start(t + atraso);
+                    osc.stop(t + atraso + 0.75);
+                });
+                setTimeout(resolve, 950);
+            } catch {
+                resolve();
             }
-
-            const senha = await res.json();
-            exibirSenhaChamada(senha);
-            falarSenha(senha, guiche);
-        } catch (e) {
-            alert('Erro ao chamar senha. Verifique se a API está rodando.');
-            console.error(e);
-        }
-    }
-
-    function exibirSenhaChamada(senha) {
-        const el = document.getElementById('senhaAtual');
-        el.textContent = senha.code;
-        
-        let classeCor = 'comum';
-        if (senha.passwordType === 'IDOSO') classeCor = 'idoso';
-        else if (senha.passwordType === 'VIP') classeCor = 'vip';
-
-        el.className = `senha-atual piscando ${classeCor}`;
-        document.getElementById('guicheAtual').textContent = `Guichê ${senha.guiche}`;
-        setTimeout(() => el.classList.remove('piscando'), 4000);
-    }
-
-    function falarSenha(senha, guiche) {
-        if (!('speechSynthesis' in window)) return;
-        const codigoFalado = senha.code.split('').join(' ');
-        const utter = new SpeechSynthesisUtterance(`Senha ${codigoFalado}, guichê ${guiche}`);
-        utter.lang = 'pt-BR';
-        speechSynthesis.speak(utter);
-    }
-
-    async function carregarHistorico() {
-        const res = await fetch(`${API_URL}/senhas/chamadas`);
-        const lista = await res.json();
-        const container = document.getElementById('historico');
-        container.innerHTML = '';
-        lista.forEach(senha => {
-            const div = document.createElement('div');
-            
-            let classeCor = 'comum';
-            if (senha.passwordType === 'IDOSO') classeCor = 'idoso';
-            else if (senha.passwordType === 'VIP') classeCor = 'vip';
-
-            div.className = `item-historico ${classeCor}`;
-            div.innerHTML = `<span>${senha.code}</span><span>Guichê ${senha.guiche}</span>`;
-            container.appendChild(div);
         });
     }
 
-    async function carregarFilaDetalhada() {
-        const res = await fetch(`${API_URL}/senhas/aguardando/detalhado`);
-        const lista = await res.json();
-        const container = document.getElementById('filaDetalhada');
-        if (!container) return;
-        container.innerHTML = '';
+    function falar(senha) {
+        if (!('speechSynthesis' in window)) return;
+        speechSynthesis.cancel();
+        const codigo = senha.code.split('').join(' ');
+        const nome = senha.nomeCliente ? `, ${senha.nomeCliente}` : '';
+        const fala = new SpeechSynthesisUtterance(`Senha ${codigo}${nome}. Dirija-se ao guichê ${senha.guiche}`);
+        fala.lang = 'pt-BR';
+        fala.rate = 0.95;
+        speechSynthesis.speak(fala);
+    }
 
-        if (lista.length === 0) {
-            container.innerHTML = '<p style="color:#64748b; font-size:14px;">Nenhuma senha na fila.</p>';
+    function anunciar(senha) {
+        const card = $('cardChamada');
+        card.classList.remove('anunciando');
+        void card.offsetWidth;
+        card.classList.add('anunciando');
+        if (estado.som) tocarAviso().then(() => falar(senha));
+    }
+
+    // ---------- Renderização ----------
+    function renderChamada() {
+        const chamadas = estado.senhas.filter(s => s.calledAt).sort(ordenarPorChamada);
+        const atual = chamadas[0];
+        const card = $('cardChamada');
+
+        if (!atual) {
+            delete card.dataset.tipo;
+            $('chamadaCodigo').textContent = '– – –';
+            $('chamadaNome').textContent = 'Aguardando a primeira chamada';
+            $('chamadaNome').classList.add('vazio');
+            $('chamadaTipo').hidden = true;
+            $('chamadaStatus').hidden = true;
+            $('chamadaGuiche').hidden = true;
+        } else {
+            card.dataset.tipo = atual.passwordType;
+            $('chamadaCodigo').textContent = atual.code;
+            $('chamadaNome').textContent = atual.nomeCliente || 'Sem nome informado';
+            $('chamadaNome').classList.toggle('vazio', !atual.nomeCliente);
+            $('chamadaTipo').innerHTML = `${icone(TIPOS[atual.passwordType].icone)}${TIPOS[atual.passwordType].rotulo}`;
+            $('chamadaTipo').hidden = false;
+            $('chamadaStatus').className = `status ${atual.passwordStatus}`;
+            $('chamadaStatus').textContent = STATUS[atual.passwordStatus];
+            $('chamadaStatus').hidden = false;
+            $('chamadaGuicheNum').textContent = atual.guiche;
+            $('chamadaGuicheNome').textContent = atual.nomeGuiche || nomeGuiche(atual.guiche);
+            $('chamadaGuiche').hidden = false;
+        }
+
+        const chave = atual ? `${atual.id}|${atual.calledAt}` : null;
+        if (chave && chave !== estado.chaveUltimaChamada && estado.inicializado) anunciar(atual);
+        estado.chaveUltimaChamada = chave;
+
+        const anteriores = chamadas.slice(1, 7);
+        $('listaRecentes').innerHTML = anteriores.length
+            ? anteriores.map(s => `
+                <li class="item" data-tipo="${s.passwordType}">
+                    <span class="item-codigo">${esc(s.code)}</span>
+                    <div class="item-texto">
+                        <strong>${esc(s.nomeCliente || 'Sem nome')}</strong>
+                        <span>${esc(STATUS[s.passwordStatus])} · ${horaCurta(s.calledAt)}</span>
+                    </div>
+                    <div class="item-lado"><b>${esc(s.guiche)}</b>guichê</div>
+                </li>`).join('')
+            : vazio('history', 'As chamadas anteriores aparecem aqui');
+    }
+
+    function renderKpis() {
+        const s = estado.stats;
+        if (!s) return;
+        $('kpiFila').textContent = s.totalAguardando;
+        $('kpiAtendimentos').textContent = s.totalAtendimentos;
+        $('kpiFinalizadas').textContent = s.totalAtendidasHoje;
+        $('kpiEspera').textContent = formatarMinutos(s.tempoMedioEsperaMinutos);
+        $('kpiAtendimentoMedio').textContent = formatarMinutos(s.tempoMedioAtendimentoMinutos);
+
+        const destaque = s.guicheMaisAtendimentos;
+        $('kpiDestaque').textContent = destaque ? destaque.numero : '—';
+        $('kpiDestaqueSub').textContent = destaque
+            ? `${destaque.nome} · ${destaque.totalAtendimentos} atend.`
+            : 'Sem atendimentos';
+    }
+
+    function renderFila() {
+        $('filaContador').textContent = estado.fila.length;
+        $('listaFila').innerHTML = estado.fila.length
+            ? estado.fila.map(({ senha, posicaoNaFila, tempoEsperaEstimadoMinutos }) => `
+                <li class="item" data-tipo="${senha.passwordType}">
+                    <span class="posicao">${posicaoNaFila}º</span>
+                    <span class="item-codigo">${esc(senha.code)}</span>
+                    <div class="item-texto">
+                        <strong>${esc(senha.nomeCliente || 'Sem nome')}</strong>
+                        <span><span class="tag">${icone(TIPOS[senha.passwordType].icone)}${TIPOS[senha.passwordType].rotulo}</span> · chegou às ${horaCurta(senha.createdAt)}</span>
+                    </div>
+                    <div class="item-lado"><b>~${formatarMinutos(tempoEsperaEstimadoMinutos)}</b>estimado</div>
+                </li>`).join('')
+            : vazio('users', 'Ninguém na fila no momento');
+    }
+
+    function renderRanking() {
+        const lista = estado.stats?.atendimentosPorGuiche ?? [];
+        const lider = estado.stats?.guicheMaisAtendimentos;
+        const maximo = Math.max(1, ...lista.map(g => g.totalAtendimentos));
+        $('rankingDica').textContent = `${lista.length} guichês`;
+        $('listaRanking').innerHTML = lista.length
+            ? lista.map((g, i) => {
+                const ehLider = lider && lider.numero === g.numero;
+                return `
+                    <li class="rank${ehLider ? ' lider' : ''}">
+                        <span class="rank-pos">${ehLider ? icone('trophy') : i + 1}</span>
+                        <div>
+                            <div class="rank-nome"><b>${esc(g.numero)}</b><span>${esc(g.nome)}</span></div>
+                            <div class="barra"><div style="width:${(g.totalAtendimentos / maximo) * 100}%"></div></div>
+                        </div>
+                        <span class="rank-total">${g.totalAtendimentos}</span>
+                    </li>`;
+            }).join('')
+            : vazio('desk', 'Nenhum guichê cadastrado');
+    }
+
+    function renderGuiches() {
+        const select = $('selectGuiche');
+        const atual = select.value || lerPref('guiche', '');
+        select.innerHTML = estado.guiches
+            .map(g => `<option value="${esc(g.numero)}">Guichê ${esc(g.numero)} · ${esc(g.nome)}</option>`)
+            .join('');
+        if (estado.guiches.some(g => g.numero === atual)) select.value = atual;
+    }
+
+    function renderAtendimento() {
+        const guiche = $('selectGuiche').value;
+        const box = $('atendimento');
+        const senha = estado.senhas
+            .filter(s => s.guiche === guiche && s.passwordStatus === 'CHAMADA')
+            .sort(ordenarPorChamada)[0];
+
+        if (!senha) {
+            delete box.dataset.tipo;
+            box.innerHTML = `<div class="atendimento-vazio">${icone('info')}Nenhum atendimento em andamento neste guichê.</div>`;
             return;
         }
+        box.dataset.tipo = senha.passwordType;
+        box.innerHTML = `
+            <div class="atendimento-topo"><span>Em atendimento</span><span>${tempoDesde(senha.calledAt)}</span></div>
+            <div class="atendimento-corpo"><b>${esc(senha.code)}</b><span>${esc(senha.nomeCliente || 'Sem nome')}</span></div>
+            <div class="atendimento-acoes">
+                <button class="btn btn-sucesso" data-acao="finalizar" data-id="${senha.id}">${icone('check')}Finalizar</button>
+                <button class="btn btn-secundario" data-acao="cancelar" data-id="${senha.id}">${icone('x')}Cancelar</button>
+            </div>`;
+    }
 
-        lista.forEach(item => {
-            const div = document.createElement('div');
-            
-            let classeCor = 'comum';
-            if (item.senha.passwordType === 'IDOSO') classeCor = 'idoso';
-            else if (item.senha.passwordType === 'VIP') classeCor = 'vip';
+    function renderTicket(senha) {
+        const ticket = $('ticket');
+        ticket.dataset.tipo = senha.passwordType;
+        ticket.innerHTML = `
+            <small>Senha emitida · ${TIPOS[senha.passwordType].rotulo}</small>
+            <span class="ticket-codigo">${esc(senha.code)}</span>
+            <div class="ticket-dados"><b>${esc(senha.nomeCliente)}</b>às ${horaCurta(senha.createdAt)}</div>`;
+        ticket.hidden = false;
+        ticket.style.animation = 'none';
+        void ticket.offsetWidth;
+        ticket.style.animation = '';
+    }
 
-            div.className = `fila-item ${classeCor}`;
-            div.innerHTML = `
-                <span class="codigo">${item.senha.code}</span>
-                <span>${item.posicaoNaFila}ª posição</span>
-                <span class="espera">~${item.tempoEsperaEstimadoMinutos} min</span>
-            `;
-            container.appendChild(div);
+    // ---------- Dados ----------
+    async function carregarGuiches() {
+        estado.guiches = await api('/guiches');
+        renderGuiches();
+    }
+
+    async function atualizarTudo() {
+        try {
+            const [senhas, fila, stats] = await Promise.all([
+                api('/senhas'),
+                api('/senhas/aguardando/detalhado'),
+                api('/estatisticas')
+            ]);
+            Object.assign(estado, { senhas, fila, stats });
+            renderChamada();
+            renderKpis();
+            renderFila();
+            renderRanking();
+            renderAtendimento();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    let timerAtualizacao;
+    function agendarAtualizacao() {
+        clearTimeout(timerAtualizacao);
+        timerAtualizacao = setTimeout(atualizarTudo, 60);
+    }
+
+    // ---------- Ações ----------
+    function selecionarTipo(tipo) {
+        estado.tipo = tipo;
+        document.querySelectorAll('.tipo').forEach(b => b.setAttribute('aria-checked', String(b.dataset.tipo === tipo)));
+    }
+
+    function emitirSenha() {
+        const input = $('inputNome');
+        const nome = input.value.trim();
+        if (!nome) {
+            input.classList.remove('erro');
+            void input.offsetWidth;
+            input.classList.add('erro');
+            input.focus();
+            toast('aviso', 'Informe o nome da pessoa', 'O nome aparece no painel quando a senha for chamada.');
+            return;
+        }
+        return comCarregamento($('btnEmitir'), async () => {
+            try {
+                const senha = await api('/gerar-senha', {
+                    method: 'POST',
+                    body: JSON.stringify({ passwordType: estado.tipo, nomeCliente: nome })
+                });
+                renderTicket(senha);
+                toast('sucesso', `Senha ${senha.code} emitida`, `${senha.nomeCliente} entrou na fila.`);
+                input.value = '';
+                input.focus();
+                agendarAtualizacao();
+            } catch (e) {
+                toast('erro', 'Não foi possível emitir a senha', e.message);
+            }
         });
     }
 
-    async function carregarEstatisticas() {
-        const res = await fetch(`${API_URL}/estatisticas`);
-        const stats = await res.json();
-        document.getElementById('statAguardando').textContent = stats.totalAguardando;
-        document.getElementById('statAtendidas').textContent = stats.totalAtendidasHoje;
-        document.getElementById('statTempoAtendimento').textContent = stats.tempoMedioAtendimentoMinutos + ' min';
-        document.getElementById('statTempoEspera').textContent = stats.tempoMedioEsperaMinutos + ' min';
+    function chamarProxima() {
+        const guiche = $('selectGuiche').value;
+        if (!guiche) {
+            toast('aviso', 'Selecione um guichê');
+            return;
+        }
+        return comCarregamento($('btnChamar'), async () => {
+            try {
+                const senha = await api('/chamar-senha', { method: 'POST', body: JSON.stringify({ guiche }) });
+                if (!senha) {
+                    toast('info', 'Fila vazia', 'Não há ninguém aguardando no momento.');
+                    return;
+                }
+                toast('sucesso', `${senha.code} chamada no guichê ${senha.guiche}`, senha.nomeCliente || '');
+                agendarAtualizacao();
+            } catch (e) {
+                toast('erro', 'Não foi possível chamar', e.message);
+            }
+        });
     }
 
-    function atualizarTudo() {
-        carregarHistorico();
-        carregarFilaDetalhada();
-        carregarEstatisticas();
+    async function concluirAtendimento(botao) {
+        const { acao, id } = botao.dataset;
+        await comCarregamento(botao, async () => {
+            try {
+                const senha = await api(`/senhas/${id}/${acao}`, { method: 'PUT' });
+                toast(acao === 'finalizar' ? 'sucesso' : 'info',
+                    acao === 'finalizar' ? `Atendimento ${senha.code} finalizado` : `Senha ${senha.code} cancelada`);
+                agendarAtualizacao();
+            } catch (e) {
+                toast('erro', 'Não foi possível atualizar o atendimento', e.message);
+            }
+        });
     }
 
+    function atualizarBotaoSom() {
+        $('btnSom').setAttribute('aria-pressed', String(estado.som));
+        $('btnSom').innerHTML = icone(estado.som ? 'volume' : 'volume-x');
+    }
+
+    function alternarModoTv() {
+        const ativo = document.body.classList.toggle('modo-tv');
+        $('btnTv').setAttribute('aria-pressed', String(ativo));
+        try {
+            if (ativo && !document.fullscreenElement) document.documentElement.requestFullscreen?.();
+            if (!ativo && document.fullscreenElement) document.exitFullscreen?.();
+        } catch { }
+    }
+
+    // ---------- Eventos ----------
+    $('tipos').addEventListener('click', e => {
+        const botao = e.target.closest('.tipo');
+        if (botao) selecionarTipo(botao.dataset.tipo);
+    });
+    $('btnEmitir').addEventListener('click', emitirSenha);
+    $('inputNome').addEventListener('keydown', e => { if (e.key === 'Enter') emitirSenha(); });
+    $('inputNome').addEventListener('input', e => e.target.classList.remove('erro'));
+    $('btnChamar').addEventListener('click', chamarProxima);
+    $('selectGuiche').addEventListener('change', e => { salvarPref('guiche', e.target.value); renderAtendimento(); });
+    $('atendimento').addEventListener('click', e => {
+        const botao = e.target.closest('[data-acao]');
+        if (botao) concluirAtendimento(botao);
+    });
+
+    $('btnSom').addEventListener('click', () => {
+        estado.som = !estado.som;
+        salvarPref('som', estado.som ? '1' : '0');
+        atualizarBotaoSom();
+        if (estado.som) tocarAviso();
+    });
+    $('btnTv').addEventListener('click', alternarModoTv);
+    document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement && document.body.classList.contains('modo-tv')) {
+            document.body.classList.remove('modo-tv');
+            $('btnTv').setAttribute('aria-pressed', 'false');
+        }
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'F2') { e.preventDefault(); chamarProxima(); }
+    });
+
+    document.querySelectorAll('[data-fechar]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
+
+    $('btnNovoGuiche').addEventListener('click', () => {
+        $('formGuiche').reset();
+        $('dlgGuiche').showModal();
+    });
+    $('formGuiche').addEventListener('submit', async e => {
+        e.preventDefault();
+        try {
+            const guiche = await api('/guiches', {
+                method: 'POST',
+                body: JSON.stringify({ numero: $('guicheNumero').value, nome: $('guicheNome').value })
+            });
+            $('dlgGuiche').close();
+            await carregarGuiches();
+            $('selectGuiche').value = guiche.numero;
+            salvarPref('guiche', guiche.numero);
+            renderAtendimento();
+            toast('sucesso', `Guichê ${guiche.numero} cadastrado`, guiche.nome);
+        } catch (err) {
+            toast('erro', 'Não foi possível cadastrar', err.message);
+        }
+    });
+
+    $('btnResetar').addEventListener('click', () => $('dlgReset').showModal());
+    $('formReset').addEventListener('submit', async e => {
+        e.preventDefault();
+        try {
+            await api('/senhas/resetar', { method: 'POST' });
+            $('dlgReset').close();
+            $('ticket').hidden = true;
+            toast('sucesso', 'Dia reiniciado', 'A numeração das senhas voltou para 001.');
+        } catch (err) {
+            toast('erro', 'Não foi possível reiniciar', err.message);
+        }
+    });
+
+    // ---------- Relógio ----------
+    function atualizarRelogio() {
+        const agora = new Date();
+        $('hora').textContent = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        $('data').textContent = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+    }
+    setInterval(atualizarRelogio, 1000);
+    setInterval(renderAtendimento, 30000);
+    atualizarRelogio();
+
+    // ---------- Tempo real (SSE) ----------
     function conectarEventos() {
-        const eventSource = new EventSource(`${API_URL}/eventos`);
-        const statusEl = document.getElementById('statusConexao');
-
-        eventSource.onopen = () => {
-            statusEl.textContent = '🟢 ao vivo';
-            statusEl.className = 'online';
+        const fonte = new EventSource(`${API}/eventos`);
+        const status = $('conexao');
+        fonte.onopen = () => {
+            status.className = 'conexao online';
+            status.querySelector('.txt').textContent = 'Ao vivo';
+            agendarAtualizacao();
         };
-
-        eventSource.onerror = () => {
-            statusEl.textContent = '🔴 reconectando...';
-            statusEl.className = 'offline';
+        fonte.onerror = () => {
+            status.className = 'conexao offline';
+            status.querySelector('.txt').textContent = 'Reconectando…';
         };
-
         ['senha-criada', 'senha-chamada', 'senha-finalizada', 'senha-cancelada', 'sistema-resetado']
-            .forEach(evento => eventSource.addEventListener(evento, atualizarTudo));
+            .forEach(evento => fonte.addEventListener(evento, agendarAtualizacao));
+        fonte.addEventListener('guiche-adicionado', async () => {
+            await carregarGuiches();
+            agendarAtualizacao();
+        });
     }
 
-    conectarEventos();
-    atualizarTudo();
+    // ---------- Início ----------
+    (async function iniciar() {
+        atualizarBotaoSom();
+        try {
+            await carregarGuiches();
+            await atualizarTudo();
+        } catch (e) {
+            toast('erro', 'API indisponível', 'Verifique se o servidor está rodando.');
+            console.error(e);
+        }
+        estado.inicializado = true;
+        conectarEventos();
+        $('inputNome').focus();
+    })();
 </script>
 
 </body>

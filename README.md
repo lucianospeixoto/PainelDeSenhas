@@ -8,7 +8,7 @@ Trabalho de Java focado na implementação do padrão de projeto **Factory Metho
 
 * Cauê Vinicius
 * Felipe de Oliveira Souza
-* Luciano Peixoto
+* Luciano S Peixoto
 * Miguel de Paula Arantes
 * Ryan Moscardini
 
