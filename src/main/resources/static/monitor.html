@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07131f">
+  <title>Monitor de chamadas</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #07131f; color: #f4f8fb; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 4vw; background: radial-gradient(ellipse at 50% 15%, #15334a, #07131f 68%); }
+    main { width: min(1100px, 100%); text-align: center; }
+    .topo { display: flex; align-items: center; justify-content: center; gap: .7rem; color: #a9c0d2; font-size: clamp(1rem, 2vw, 1.4rem); letter-spacing: .16em; text-transform: uppercase; }
+    .ponto { width: .65rem; height: .65rem; border-radius: 50%; background: #f3bd54; }
+    .ponto.online { background: #43d6aa; box-shadow: 0 0 16px #43d6aa; }
+    .cartao { margin: 5vh 0 3vh; padding: clamp(2rem, 7vw, 6rem) 1rem; border: 1px solid #25445a; border-radius: 28px; background: #0b1c2bcc; box-shadow: 0 30px 100px #0006; }
+    .rotulo { color: #43d6aa; font-size: clamp(1.2rem, 3vw, 2rem); letter-spacing: .2em; text-transform: uppercase; }
+    #codigo { margin: .1em 0; color: #fff; font-size: clamp(6rem, 23vw, 16rem); font-weight: 800; line-height: 1; letter-spacing: .03em; }
+    #nome { font-size: clamp(2rem, 7vw, 5rem); font-weight: 650; overflow-wrap: anywhere; }
+    #guiche { margin-top: 1rem; color: #a9c0d2; font-size: clamp(1.3rem, 3.5vw, 2.4rem); }
+    #habilitar { border: 1px solid #43d6aa; border-radius: 999px; padding: .9rem 1.4rem; background: #102b32; color: #dffff5; font: inherit; font-size: 1rem; cursor: pointer; }
+    #habilitar[hidden] { display: none; }
+    .vazio #codigo { color: #678093; font-size: clamp(3rem, 12vw, 8rem); }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="topo"><span class="ponto" id="ponto"></span><span id="estado">Conectando</span></div>
+    <section class="cartao vazio" id="cartao" aria-live="polite">
+      <div class="rotulo">Senha chamada</div>
+      <div id="codigo">— — —</div>
+      <div id="nome">Aguardando chamada</div>
+      <div id="guiche"></div>
+    </section>
+    <button id="habilitar">Ativar voz neste monitor</button>
+  </main>
+  <script>
+    const API = '/api';
+    const $ = id => document.getElementById(id);
+    let chamadaAtual = null;
+    let vozAtiva = false;
+    let primeiraCarga = true;
+    const filaDeVoz = [];
+    let falando = false;
+
+    function processarFilaDeVoz() {
+      if (!vozAtiva || falando || filaDeVoz.length === 0 || !('speechSynthesis' in window)) return;
+      falando = true;
+      const fala = filaDeVoz.shift();
+      const concluir = () => {
+        falando = false;
+        processarFilaDeVoz();
+      };
+      fala.onend = concluir;
+      fala.onerror = concluir;
+      speechSynthesis.speak(fala);
+    }
+
+    function enfileirarFala(texto) {
+      const fala = new SpeechSynthesisUtterance(texto);
+      fala.lang = 'pt-BR';
+      fala.rate = .95;
+      filaDeVoz.push(fala);
+      processarFilaDeVoz();
+    }
+
+    function falar(senha) {
+      if (!vozAtiva || !('speechSynthesis' in window)) return;
+      const codigo = (senha.code || '').split('').join(' ');
+      const nome = senha.nomeCliente ? `, ${senha.nomeCliente}` : '';
+      const guiche = senha.guiche ? `. Dirija-se ao guichê ${senha.guiche}` : '';
+      enfileirarFala(`Senha ${codigo}${nome}${guiche}`);
+    }
+
+    function exibir(senha, anunciar = false) {
+      if (!senha) return;
+      chamadaAtual = senha.id;
+      $('cartao').classList.remove('vazio');
+      $('codigo').textContent = senha.code || '— — —';
+      $('nome').textContent = senha.nomeCliente || 'Sem nome informado';
+      $('guiche').textContent = senha.guiche ? `Guichê ${senha.guiche}${senha.nomeGuiche ? ' · ' + senha.nomeGuiche : ''}` : '';
+      if (anunciar) falar(senha);
+    }
+
+    async function atualizar() {
+      try {
+        const resposta = await fetch(`${API}/senhas`, { cache: 'no-store' });
+        if (!resposta.ok) throw new Error('Falha ao carregar chamadas');
+        const senhas = await resposta.json();
+        const ultima = senhas.filter(s => s.calledAt).sort((a, b) => new Date(b.calledAt) - new Date(a.calledAt))[0];
+        if (ultima && ultima.id !== chamadaAtual) exibir(ultima, !primeiraCarga);
+        $('estado').textContent = 'Ao vivo';
+        $('ponto').classList.add('online');
+      } catch {
+        $('estado').textContent = 'Reconectando';
+        $('ponto').classList.remove('online');
+      } finally { primeiraCarga = false; }
+    }
+
+    $('habilitar').addEventListener('click', () => {
+      vozAtiva = true;
+      $('habilitar').hidden = true;
+      if ('speechSynthesis' in window) {
+        enfileirarFala('Voz ativada');
+      }
+    });
+
+    atualizar();
+    const eventos = new EventSource(`${API}/eventos`);
+    eventos.onopen = () => { $('estado').textContent = 'Ao vivo'; $('ponto').classList.add('online'); };
+    eventos.onerror = () => { $('estado').textContent = 'Reconectando'; $('ponto').classList.remove('online'); };
+    ['senha-chamada', 'senha-finalizada', 'senha-cancelada', 'sistema-resetado'].forEach(nome => eventos.addEventListener(nome, atualizar));
+    setInterval(atualizar, 15000);
+  </script>
+</body>
+</html>
