@@ -7,7 +7,9 @@ Trabalho de Java focado na implementação do padrão de projeto **Factory Metho
 ## 👥 Integrantes
 
 * Luciano S Peixoto
-
+* Ryan Oliveira Moscardini
+* Caue Vinicius
+* Miguel de Paula Arantes
 ---
 
 ## 🚀 Como Rodar
