@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070b16">
+  <title>Totem Hospital Peixoto&amp;Moscardini · Totem do paciente</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme: dark; --bg:#070b16; --surface:#0f1628; --surface2:#151e35; --border:rgba(148,163,184,.16); --text:#e8edf7; --muted:#8b97b3; --accent:#7c83ff; --teal:#2dd4bf; --green:#34d399; --gold:#fbbf24; --rose:#fb7185; --red:#f43f5e; --font:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif; --num:'Space Grotesk','Segoe UI',system-ui,sans-serif; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:var(--text); font:16px var(--font); background:radial-gradient(900px 500px at 0% 0%,rgba(124,131,255,.18),transparent 65%),radial-gradient(800px 500px at 100% 100%,rgba(45,212,191,.1),transparent 65%),var(--bg); }
+    button,input { font:inherit; color:inherit; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:18px clamp(18px,4vw,48px); border-bottom:1px solid var(--border); background:#070b1699; }
+    .marca { display:flex; align-items:center; gap:12px; }.logo { width:46px;height:46px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--teal));font-size:24px; }
+    .marca strong { display:block;max-width:280px;overflow-wrap:anywhere;font-size:18px; }.marca span { color:var(--muted);font-size:13px; }
+    .link { color:#c5c9ff;text-decoration:none;font-size:14px;font-weight:700;padding:10px 14px;border:1px solid var(--border);border-radius:12px; }
+    main { width:min(920px,calc(100% - 32px));margin:clamp(26px,6vh,64px) auto; }
+    .intro { text-align:center;margin-bottom:28px; }.intro .eyebrow { color:var(--teal);font-weight:800;font-size:12px;letter-spacing:.16em;text-transform:uppercase; }.intro h1 { margin:10px 0;font-size:clamp(28px,5vw,44px);letter-spacing:-.04em; }.intro p { margin:0;color:var(--muted); }
+    .card { padding:clamp(20px,4vw,34px);border-radius:22px;border:1px solid var(--border);background:var(--surface);box-shadow:0 20px 50px -28px #000; }
+    .field { display:flex;flex-direction:column;gap:9px;margin-bottom:24px; }.field label,.legend { font-size:14px;font-weight:700; }.field input { height:54px;padding:0 16px;background:var(--surface2);border:1px solid var(--border);border-radius:13px;outline:none; }.field input:focus { border-color:var(--accent);box-shadow:0 0 0 4px #7c83ff2b; }
+    .choices { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0 24px; }.choice { --tone:var(--green);min-height:112px;display:flex;align-items:flex-start;gap:14px;padding:18px;text-align:left;background:var(--surface2);border:1px solid var(--border);border-radius:15px;cursor:pointer;transition:.15s; }.choice:hover { border-color:#ffffff55;transform:translateY(-1px); }.choice[aria-checked="true"] { border-color:var(--tone);box-shadow:0 0 0 3px color-mix(in srgb,var(--tone) 20%,transparent);background:color-mix(in srgb,var(--tone) 9%,var(--surface2)); }.choice .icon { color:var(--tone);font-size:23px;line-height:1; }.choice strong { display:block;font-size:16px;margin-bottom:5px; }.choice small { color:var(--muted);font-size:12px;line-height:1.45; }.choice[data-type="PREFERENCIAL"] { --tone:var(--gold); }.choice[data-type="PRIORIDADE_80"] { --tone:var(--rose); }.choice[data-type="AGENDADO"] { --tone:var(--teal); }.choice[data-type="URGENTE"] { --tone:var(--red); }
+    .submit { width:100%;height:58px;border:0;border-radius:14px;background:linear-gradient(110deg,var(--accent),#5b63df);color:white;font-weight:800;font-size:17px;cursor:pointer; }.submit:disabled { opacity:.65;cursor:wait; }.hint { text-align:center;color:var(--muted);font-size:12px;margin:14px 0 0; }
+    .resultado { margin-top:18px;padding:22px;text-align:center;border-radius:16px;border:1px solid #34d39966;background:#34d3990d; }.resultado[hidden] { display:none; }.resultado small { color:var(--teal);font-weight:700; }.resultado strong { display:block;margin:6px;font:700 clamp(52px,12vw,82px) var(--num); }.resultado p { margin:0;color:var(--muted); }.novo { margin-top:16px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);cursor:pointer;font-weight:700; }
+    .erro { margin:12px 0 0;color:#fda4af;text-align:center; }.rodape { color:var(--muted);text-align:center;font-size:12px;margin:18px; }
+    @media(max-width:760px) {
+      body { font-size:18px; }
+      .topbar { padding:14px 18px;gap:10px; }
+      .logo { width:52px;height:52px;font-size:27px; }
+      .marca { gap:10px; }.marca strong { font-size:20px; }.marca span { font-size:14px; }
+      .link { min-height:48px;display:inline-flex;align-items:center;padding:10px 13px;font-size:13px;white-space:nowrap; }
+      main { width:min(620px,calc(100% - 28px));margin:28px auto 20px; }
+      .intro { margin-bottom:22px; }.intro h1 { font-size:clamp(34px,8vw,46px); }.intro p { max-width:34ch;margin:0 auto;font-size:17px;line-height:1.5; }
+      .card { padding:clamp(22px,5vw,34px);border-radius:20px; }
+      .field { gap:11px;margin-bottom:28px; }.field label,.legend { font-size:17px; }.field input { height:66px;padding:0 18px;border-radius:15px;font-size:18px; }
+      .choices { grid-template-columns:1fr;gap:13px;margin:14px 0 26px; }
+      .choice { min-height:106px;align-items:center;gap:17px;padding:19px 20px;border-radius:16px; }
+      .choice .icon { width:32px;flex:0 0 32px;text-align:center;font-size:29px; }
+      .choice strong { font-size:19px;margin-bottom:6px; }.choice small { display:block;font-size:15px;line-height:1.45; }
+      .submit { min-height:68px;height:auto;padding:14px 18px;font-size:19px;border-radius:16px; }
+      .hint { font-size:14px;line-height:1.5;margin-top:16px; }
+      .resultado { padding:26px 18px; }.resultado p { font-size:16px;line-height:1.5; }.novo { min-height:50px;padding:12px 17px;font-size:15px; }
+      .rodape { font-size:14px;line-height:1.5;margin:16px 6px; }
+    }
+    @media(max-width:390px) {
+      .topbar { padding:12px; }.marca { gap:8px; }.logo { width:46px;height:46px; }
+      .marca strong { font-size:18px; }.marca span { font-size:12px; }.link { padding:9px 10px;font-size:12px; }
+      main { width:calc(100% - 20px);margin-top:20px; }.card { padding:18px 14px; }
+      .choice { min-height:100px;padding:16px;gap:12px; }.choice .icon { width:28px;flex-basis:28px;font-size:26px; }.choice strong { font-size:18px; }.choice small { font-size:14px; }
+    }
+    @media(max-height:520px) and (orientation:landscape) {
+      main { margin-top:16px; }.intro { margin-bottom:14px; }.intro h1 { font-size:30px;margin:5px 0; }
+      .choices { grid-template-columns:repeat(2,minmax(0,1fr)); }.choice { min-height:88px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="marca"><div class="logo" aria-hidden="true">✚</div><div><strong>Totem Hospital Peixoto&amp;Moscardini</strong><span>Totem de atendimento</span></div></div><a class="link" href="/">Área da recepção</a></header>
+  <main>
+    <section class="card">
+      <form id="formSenha">
+        <div class="field"><label for="nome">Nome do paciente</label><input id="nome" name="nome" maxlength="60" autocomplete="name" placeholder="Digite seu nome completo" required></div>
+        <div class="legend" id="legenda">Tipo de atendimento</div>
+        <div class="choices" role="radiogroup" aria-labelledby="legenda" id="categorias">
+          <button class="choice" type="button" role="radio" aria-checked="true" data-type="COMUM"><span class="icon">●</span><span><strong>Normal</strong><small>Atendimento geral</small></span></button>
+          <button class="choice" type="button" role="radio" aria-checked="false" data-type="PREFERENCIAL"><span class="icon">♡</span><span><strong>Preferencial</strong><small>Idosos, gestantes, PcD e pessoas autistas</small></span></button>
+          <button class="choice" type="button" role="radio" aria-checked="false" data-type="PRIORIDADE_80"><span class="icon">♥</span><span><strong>Prioridade 80+</strong><small>Pessoas idosas com 80 anos ou mais</small></span></button>
+          <button class="choice" type="button" role="radio" aria-checked="false" data-type="AGENDADO"><span class="icon">◷</span><span><strong>Agendado</strong><small>Check-in de consulta ou exame marcado</small></span></button>
+          <button class="choice" type="button" role="radio" aria-checked="false" data-type="URGENTE"><span class="icon">!</span><span><strong>Urgente</strong><small>Procure a equipe de saúde para avaliação imediata</small></span></button>
+        </div>
+        <button class="submit" id="emitir" type="submit">Emitir minha senha</button>
+        <p class="hint">Em caso de emergência médica, procure imediatamente a equipe do hospital.</p>
+        <p class="erro" id="erro" role="alert" hidden></p>
+      </form>
+      <div class="resultado" id="resultado" aria-live="polite" hidden><small>SUA SENHA</small><strong id="codigo"></strong><p id="detalhe"></p><button class="novo" id="outra" type="button">Emitir outra senha</button></div>
+    </section>
+    <p class="rodape">Aguarde a chamada da sua senha no painel.</p>
+  </main>
+  <script>
+    const $ = id => document.getElementById(id);
+    let tipo = 'COMUM';
+    document.querySelectorAll('.choice').forEach(botao => botao.addEventListener('click', () => {
+      tipo = botao.dataset.type;
+      document.querySelectorAll('.choice').forEach(item => item.setAttribute('aria-checked', String(item === botao)));
+    }));
+    $('formSenha').addEventListener('submit', async evento => {
+      evento.preventDefault();
+      const nomeCliente = $('nome').value.trim();
+      if (!nomeCliente) { $('nome').focus(); return; }
+      $('emitir').disabled = true; $('erro').hidden = true;
+      try {
+        const resposta = await fetch('/api/gerar-senha', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ passwordType:tipo, nomeCliente }) });
+        const dados = await resposta.json();
+        if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível emitir sua senha.');
+        $('codigo').textContent = dados.code;
+        $('detalhe').textContent = `${nomeCliente} · ${document.querySelector(`.choice[data-type="${tipo}"] strong`).textContent}`;
+        $('formSenha').hidden = true; $('resultado').hidden = false;
+      } catch (erro) { $('erro').textContent = erro.message; $('erro').hidden = false; }
+      finally { $('emitir').disabled = false; }
+    });
+    $('outra').addEventListener('click', () => { $('formSenha').reset(); tipo='COMUM'; document.querySelectorAll('.choice').forEach((item,i) => item.setAttribute('aria-checked',String(i===0))); $('resultado').hidden=true; $('formSenha').hidden=false; $('nome').focus(); });
+  </script>
+</body>
+</html>

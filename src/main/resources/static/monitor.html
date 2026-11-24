@@ -4,12 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07131f">
-  <title>Monitor de chamadas</title>
+  <title>Totem Hospital Peixoto&amp;Moscardini · Monitor de chamadas</title>
   <style>
     :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #07131f; color: #f4f8fb; }
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 4vw; background: radial-gradient(ellipse at 50% 15%, #15334a, #07131f 68%); }
     main { width: min(1100px, 100%); text-align: center; }
+    .marca { margin-bottom: 1.5rem; color: #dce7f0; font-size: clamp(1rem, 2.5vw, 1.5rem); font-weight: 750; letter-spacing: .01em; }
     .topo { display: flex; align-items: center; justify-content: center; gap: .7rem; color: #a9c0d2; font-size: clamp(1rem, 2vw, 1.4rem); letter-spacing: .16em; text-transform: uppercase; }
     .ponto { width: .65rem; height: .65rem; border-radius: 50%; background: #f3bd54; }
     .ponto.online { background: #43d6aa; box-shadow: 0 0 16px #43d6aa; }
@@ -25,6 +26,7 @@
 </head>
 <body>
   <main>
+    <div class="marca">Totem Hospital Peixoto&amp;Moscardini</div>
     <div class="topo"><span class="ponto" id="ponto"></span><span id="estado">Conectando</span></div>
     <section class="cartao vazio" id="cartao" aria-live="polite">
       <div class="rotulo">Senha chamada</div>

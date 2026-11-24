@@ -52,9 +52,12 @@ public class PasswordService {
 
     private int getPrioridadePeso(Senha s) {
         return switch (s.getPasswordType()) {
-            case IDOSO -> 0;
-            case VIP -> 1;
-            case COMUM -> 2;
+            case URGENTE -> 0;
+            case PRIORIDADE_80 -> 1;
+            case IDOSO, PREFERENCIAL -> 2;
+            case AGENDADO -> 3;
+            case VIP -> 4;
+            case COMUM -> 5;
         };
     }
 

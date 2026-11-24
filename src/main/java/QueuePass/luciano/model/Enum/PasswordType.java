@@ -3,5 +3,9 @@ package QueuePass.luciano.model.Enum;
 public enum PasswordType {
     COMUM,
     VIP,
-    IDOSO
+    IDOSO,
+    PREFERENCIAL,
+    PRIORIDADE_80,
+    AGENDADO,
+    URGENTE
 }

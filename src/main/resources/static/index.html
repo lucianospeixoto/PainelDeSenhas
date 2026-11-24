@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>QueuePass · Painel de Senhas</title>
+    <title>Totem Hospital Peixoto&amp;Moscardini · Painel de atendimento</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -74,7 +74,7 @@
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
             box-shadow: 0 8px 24px -8px rgba(124, 131, 255, 0.7);
         }
-        .marca strong { display: block; font-size: 17px; font-weight: 800; letter-spacing: -0.01em; }
+        .marca strong { display: block; max-width: 290px; overflow-wrap: anywhere; font-size: 17px; font-weight: 800; letter-spacing: -0.01em; }
         .marca span { font-size: 12px; color: var(--muted); }
 
         .topo-acoes { display: flex; align-items: center; gap: 10px; }
@@ -161,6 +161,10 @@
         .chamada[data-tipo="COMUM"] { --cor: var(--comum); }
         .chamada[data-tipo="VIP"] { --cor: var(--vip); }
         .chamada[data-tipo="IDOSO"] { --cor: var(--idoso); }
+        .chamada[data-tipo="PREFERENCIAL"] { --cor: var(--vip); }
+        .chamada[data-tipo="PRIORIDADE_80"] { --cor: var(--idoso); }
+        .chamada[data-tipo="AGENDADO"] { --cor: var(--accent-2); }
+        .chamada[data-tipo="URGENTE"] { --cor: var(--perigo); }
         .chamada::after {
             content: '';
             position: absolute;
@@ -248,6 +252,10 @@
         }
         .item[data-tipo="VIP"] { --cor: var(--vip); }
         .item[data-tipo="IDOSO"] { --cor: var(--idoso); }
+        .item[data-tipo="PREFERENCIAL"] { --cor: var(--vip); }
+        .item[data-tipo="PRIORIDADE_80"] { --cor: var(--idoso); }
+        .item[data-tipo="AGENDADO"] { --cor: var(--accent-2); }
+        .item[data-tipo="URGENTE"] { --cor: var(--perigo); }
         .item:hover { border-color: var(--border-forte); }
         .item-codigo { font-family: var(--fonte-num); font-weight: 700; font-size: 18px; color: var(--cor); min-width: 58px; }
         .item-texto { flex: 1; min-width: 0; }
@@ -364,6 +372,10 @@
         }
         .tipo[data-tipo="VIP"] { --cor: var(--vip); }
         .tipo[data-tipo="IDOSO"] { --cor: var(--idoso); }
+        .tipo[data-tipo="PREFERENCIAL"] { --cor: var(--vip); }
+        .tipo[data-tipo="PRIORIDADE_80"] { --cor: var(--idoso); }
+        .tipo[data-tipo="AGENDADO"] { --cor: var(--accent-2); }
+        .tipo[data-tipo="URGENTE"] { --cor: var(--perigo); }
         .tipo .i { font-size: 18px; color: var(--cor); }
         .tipo strong { font-size: 13px; }
         .tipo small { font-size: 11px; color: var(--muted); line-height: 1.3; }
@@ -524,6 +536,7 @@
         }
         @media (max-width: 760px) {
             .topbar { padding: 12px 16px; }
+            .marca strong { max-width: 170px; font-size: 14px; line-height: 1.2; }
             .relogio, .marca span, .conexao .txt { display: none; }
             .layout { padding: 16px; gap: 16px; }
             .operacao, .destaque, .inferior { grid-template-columns: minmax(0, 1fr); }
@@ -534,6 +547,10 @@
             .chamada { padding: 22px 20px; min-height: 0; }
             .kpis { grid-template-columns: repeat(2, 1fr); }
         }
+        /* A recepção acompanha a fila; a emissão fica no totem do paciente. */
+        .destaque { grid-template-columns: minmax(0, 1fr); }
+        .recentes, .kpis, .ranking, .operacao > .op:first-child { display: none; }
+        .inferior { grid-template-columns: minmax(0, 1fr); }
     </style>
 </head>
 <body>
@@ -569,7 +586,7 @@
     <div class="marca">
         <div class="marca-logo"><svg class="i"><use href="#i-ticket"/></svg></div>
         <div>
-            <strong>QueuePass</strong>
+            <strong>Totem Hospital Peixoto&amp;Moscardini</strong>
             <span>Painel de atendimento</span>
         </div>
     </div>
@@ -667,6 +684,7 @@
     </main>
 
     <aside class="operacao">
+        <a class="btn btn-secundario btn-bloco" href="/totem.html">Abrir totem do paciente</a>
         <section class="card op">
             <div class="op-head">
                 <span class="op-passo">1</span>
@@ -769,7 +787,11 @@
     const TIPOS = {
         COMUM: { rotulo: 'Comum', icone: 'user' },
         VIP:   { rotulo: 'VIP', icone: 'star' },
-        IDOSO: { rotulo: 'Idoso', icone: 'heart' }
+        IDOSO: { rotulo: 'Prioridade 80+', icone: 'heart' },
+        PREFERENCIAL: { rotulo: 'Preferencial', icone: 'heart' },
+        PRIORIDADE_80: { rotulo: 'Prioridade 80+', icone: 'heart' },
+        AGENDADO: { rotulo: 'Agendado', icone: 'clock' },
+        URGENTE: { rotulo: 'Urgente', icone: 'alert' }
     };
     const STATUS = { AGUARDANDO: 'Aguardando', CHAMADA: 'Em atendimento', FINALIZADA: 'Finalizado', CANCELADA: 'Cancelado' };
 
@@ -1268,7 +1290,6 @@
         }
         estado.inicializado = true;
         conectarEventos();
-        $('inputNome').focus();
     })();
 </script>
 
