@@ -10,6 +10,7 @@ Trabalho de Java focado na implementação do padrão de projeto **Factory Metho
 * Ryan Oliveira Moscardini
 * Caue Vinicius
 * Miguel de Paula Arantes
+* Felipe de Oliveira Souza
 ---
 
 ## 🚀 Como Rodar
